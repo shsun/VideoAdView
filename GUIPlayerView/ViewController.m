@@ -31,12 +31,14 @@
 #pragma mark - Interface Builder Actions
 
 - (IBAction)addPlayer:(UIButton *)sender {
+    self.view.backgroundColor = [UIColor grayColor];
+    
     [copyrightLabel setHidden:NO];
     CGFloat width = [UIScreen mainScreen].bounds.size.width;
     
     //playerView = [[GUIPlayerView alloc] initWithFrame:CGRectMake(5, 64, width, width * 9.0f / 16.0f)];
     
-    playerView = [[VideoAdView alloc] initWithFrame:CGRectMake(5, 64, 300, 240)];
+    playerView = [[VideoAdView alloc] initWithFrame:CGRectMake(20, 100, 240, 180)];
     playerView.backgroundColor = [UIColor greenColor];
     //playerView.alpha = 0.20f;
     [playerView setDelegate:self];

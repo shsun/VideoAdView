@@ -22,12 +22,10 @@
 @property (strong, nonatomic) AVPlayerItem *currentItem;
 
 @property (strong, nonatomic) UIView *controllersView;
-@property (strong, nonatomic) UILabel *airPlayLabel;
 
 @property (strong, nonatomic) UIButton *fullscreenButton;
 @property (strong, nonatomic) MPVolumeView *volumeView;
 @property (strong, nonatomic) UILabel *playheadTimeLabel;
-//@property (strong, nonatomic) UILabel *liveLabel;
 
 @property (strong, nonatomic) UIView *spacerView;
 
@@ -48,11 +46,11 @@
 @implementation VideoAdView
 
 @synthesize player, playerLayer, currentItem;
-@synthesize controllersView, airPlayLabel;
+@synthesize controllersView;
 @synthesize fullscreenButton, volumeView, playheadTimeLabel, spacerView;
 @synthesize activityIndicator, progressTimer, controllersTimer, fullscreen, defaultFrame;
 
-@synthesize videoURL, controllersTimeoutPeriod, delegate;
+@synthesize videoURL, delegate;
 
 
 #pragma mark - ViewLifeCycle
@@ -84,11 +82,6 @@
                                                  name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerStalled:)
                                                  name:AVPlayerItemPlaybackStalledNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(airPlayAvailabilityChanged:)
-                                                 name:MPVolumeViewWirelessRoutesAvailableDidChangeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(airPlayActivityChanged:)
-                                                 name:MPVolumeViewWirelessRouteActiveDidChangeNotification object:nil];
-    
     
     // Container View
     controllersView = [UIView new];
@@ -107,29 +100,6 @@
     [self addConstraints:tmpHorizontalConstraints];
     [self addConstraints:tmpVerticalConstraints];
     
-    
-    // AirPlay View
-    airPlayLabel = [UILabel new];
-    [airPlayLabel setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [airPlayLabel setText:@"AirPlay is enabled"];
-    [airPlayLabel setTextColor:[UIColor lightGrayColor]];
-    [airPlayLabel setFont:[UIFont fontWithName:@"HelveticaNeue-Light" size:13.0f]];
-    [airPlayLabel setTextAlignment:NSTextAlignmentCenter];
-    [airPlayLabel setNumberOfLines:0];
-    [airPlayLabel setHidden:YES];
-    [self addSubview:airPlayLabel];
-    //
-    tmpHorizontalConstraints = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[AP]|"
-                                                                    options:0
-                                                                    metrics:nil
-                                                                      views:@{@"AP" : airPlayLabel}];
-    tmpVerticalConstraints = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[AP]-40-|"
-                                                                  options:0
-                                                                  metrics:nil
-                                                                    views:@{@"AP" : airPlayLabel}];
-    [self addConstraints:tmpHorizontalConstraints];
-    [self addConstraints:tmpVerticalConstraints];
-    
     // UIController
     volumeView = [MPVolumeView new];
     [volumeView setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -139,8 +109,8 @@
     
     fullscreenButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [fullscreenButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [fullscreenButton setImage:[UIImage imageNamed:@"gui_expand"] forState:UIControlStateNormal];
-    [fullscreenButton setImage:[UIImage imageNamed:@"gui_shrink"] forState:UIControlStateSelected];
+    [fullscreenButton setImage:[UIImage imageNamed:@"xadsdk_ad_expand"] forState:UIControlStateNormal];
+    [fullscreenButton setImage:[UIImage imageNamed:@"xadsdk_ad_shrink"] forState:UIControlStateSelected];
     
     //
     playheadTimeLabel = [UILabel new];
@@ -217,8 +187,6 @@
     [fullscreenButton addTarget:self action:@selector(toggleFullscreen:) forControlEvents:UIControlEventTouchUpInside];
     [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showControllers)]];
     [self showControllers];
-    
-    controllersTimeoutPeriod = 3;
 }
 
 
@@ -227,10 +195,6 @@
 #pragma mark - UI Customization
 - (void)setTintColor:(UIColor *)tintColor {
     [super setTintColor:tintColor];
-}
-
-- (void)setAirPlayText:(NSString *)text {
-    [airPlayLabel setText:text];
 }
 
 #pragma mark - Actions
@@ -341,21 +305,7 @@
     [UIView animateWithDuration:0.2f animations:^{
         [controllersView setAlpha:1.0f];
     } completion:^(BOOL finished) {
-        [controllersTimer invalidate];
-        
-        if (controllersTimeoutPeriod > 0) {
-            controllersTimer = [NSTimer scheduledTimerWithTimeInterval:controllersTimeoutPeriod
-                                                                target:self
-                                                              selector:@selector(hideControllers)
-                                                              userInfo:nil
-                                                               repeats:NO];
-        }
-    }];
-}
-
-- (void)hideControllers {
-    [UIView animateWithDuration:0.5f animations:^{
-        [controllersView setAlpha:0.0f];
+        [controllersTimer invalidate];        
     }];
 }
 
@@ -414,8 +364,6 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemPlaybackStalledNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:MPVolumeViewWirelessRoutesAvailableDidChangeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:MPVolumeViewWirelessRouteActiveDidChangeNotification object:nil];
     //
     [player setAllowsExternalPlayback:NO];
     [self stop];
@@ -483,49 +431,6 @@
     if ([delegate respondsToSelector:@selector(playerStalled)]) {
         [delegate playerStalled];
     }
-}
-
-
-- (void)airPlayAvailabilityChanged:(NSNotification *)notification {
-    [UIView animateWithDuration:0.4f
-                     animations:^{
-                         if ([volumeView areWirelessRoutesAvailable]) {
-                             [volumeView hideByWidth:NO];
-                         } else if (! [volumeView isWirelessRouteActive]) {
-                             [volumeView hideByWidth:YES];
-                         }
-                         [self layoutIfNeeded];
-                     }];
-}
-
-
-- (void)airPlayActivityChanged:(NSNotification *)notification {
-    [UIView animateWithDuration:0.4f
-                     animations:^{
-                         if ([volumeView isWirelessRouteActive]) {
-                             if (fullscreen)
-                             {
-                                 [self toggleFullscreen:fullscreenButton];
-                             }
-                             
-                             [fullscreenButton hideByWidth:YES];
-                             [spacerView hideByWidth:NO];
-                             
-                             [airPlayLabel setHidden:NO];
-                             
-                             controllersTimeoutPeriod = 0;
-                             [self showControllers];
-                         } else {
-                             [fullscreenButton hideByWidth:NO];
-                             [spacerView hideByWidth:YES];
-                             
-                             [airPlayLabel setHidden:YES];
-                             
-                             controllersTimeoutPeriod = 3;
-                             [self showControllers];
-                         }
-                         [self layoutIfNeeded];
-                     }];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {

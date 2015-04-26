@@ -34,7 +34,6 @@
 @interface VideoAdView : UIView
 
 @property (strong, nonatomic) NSURL *videoURL;
-@property (assign, nonatomic) NSInteger controllersTimeoutPeriod;
 @property (weak, nonatomic) id<VideoAdViewDelegate> delegate;
 
 - (void)prepareAndPlayAutomatically:(BOOL)autoPlay;
@@ -44,9 +43,6 @@
 - (void)stop;
 
 - (BOOL)isPlaying;
-
-
-- (void)setAirPlayText:(NSString *)text;
 
 - (void)dispose;
 
