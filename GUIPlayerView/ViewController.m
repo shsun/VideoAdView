@@ -8,7 +8,6 @@
 
 
 #import "ViewController.h"
-
 #import "VideoAdView.h"
 
 @interface ViewController () <VideoAdViewDelegate>
@@ -20,15 +19,19 @@
 - (IBAction)addPlayer:(UIButton *)sender;
 - (IBAction)removePlayer:(UIButton *)sender;
 
-@property (strong, nonatomic) VideoAdView *playerView;
+@property (strong, nonatomic) VideoAdView *mVideoAdView;
 
 @end
 
+
+/**
+ *
+ *
+ *
+ */
 @implementation ViewController
 
-@synthesize addPlayerButton, removePlayerButton, copyrightLabel, playerView;
-
-#pragma mark - Interface Builder Actions
+@synthesize addPlayerButton, removePlayerButton, copyrightLabel, mVideoAdView;
 
 - (IBAction)addPlayer:(UIButton *)sender {
     self.view.backgroundColor = [UIColor grayColor];
@@ -38,15 +41,15 @@
     
     //playerView = [[GUIPlayerView alloc] initWithFrame:CGRectMake(5, 64, width, width * 9.0f / 16.0f)];
     
-    playerView = [[VideoAdView alloc] initWithFrame:CGRectMake(20, 100, 240, 180)];
-    playerView.backgroundColor = [UIColor greenColor];
+    mVideoAdView = [[VideoAdView alloc] initWithFrame:CGRectMake(20, 100, 240, 180)];
+    mVideoAdView.backgroundColor = [UIColor greenColor];
     //playerView.alpha = 0.20f;
-    [playerView setDelegate:self];
-    [[self view] addSubview:playerView];
+    [mVideoAdView setDelegate:self];
+    [[self view] addSubview:mVideoAdView];
     
     NSURL *URL = [NSURL URLWithString:@"http://211.151.146.65:8080/wlantest/shanghai_sun/wanghan.mp4"];
-    [playerView setVideoURL:URL];
-    [playerView prepareAndPlayAutomatically:YES];
+    [mVideoAdView setVideoURL:URL];
+    [mVideoAdView prepareAndPlay:YES];
     
     [addPlayerButton setEnabled:NO];
     [removePlayerButton setEnabled:YES];
@@ -55,14 +58,13 @@
 - (IBAction)removePlayer:(UIButton *)sender {
     [copyrightLabel setHidden:YES];
     
-    [playerView dispose];
+    [mVideoAdView dispose];
     
     [addPlayerButton setEnabled:YES];
     [removePlayerButton setEnabled:NO];
 }
 
-#pragma mark - GUI Player View Delegate Methods
-
+#pragma mark - VideoAdView Delegate Methods
 - (void)playerWillEnterFullscreen {
     [[self navigationController] setNavigationBarHidden:YES];
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
@@ -76,7 +78,7 @@
 - (void)playerDidEnd {
     [copyrightLabel setHidden:YES];
     
-    [playerView dispose];
+    [mVideoAdView dispose];
     
     [addPlayerButton setEnabled:YES];
     [removePlayerButton setEnabled:NO];
@@ -84,7 +86,7 @@
 
 - (void)playerFailedToPlayToEnd {
     NSLog(@"Error: could not play video");
-    [playerView dispose];
+    [mVideoAdView dispose];
 }
 
 @end

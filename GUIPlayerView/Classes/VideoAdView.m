@@ -311,7 +311,7 @@
 
 #pragma mark - Public Methods
 
-- (void)prepareAndPlayAutomatically:(BOOL)autoPlay {
+- (void)prepareAndPlay:(BOOL)autoPlay {
     if (player) {
         [self stop];
     }
@@ -319,12 +319,9 @@
     player = [[AVPlayer alloc] initWithPlayerItem:nil];
     
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:videoURL options:nil];
-    NSArray *keys = [NSArray arrayWithObject:@"playable"];
-    
-    [asset loadValuesAsynchronouslyForKeys:keys completionHandler:^{
+    [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:@"playable"] completionHandler:^{
         currentItem = [AVPlayerItem playerItemWithAsset:asset];
         [player replaceCurrentItemWithPlayerItem:currentItem];
-        
         if (autoPlay) {
             dispatch_sync(dispatch_get_main_queue(), ^{
                 [self play];
@@ -345,7 +342,7 @@
     [self bringSubviewToFront:controllersView];
     
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
-    
+    //
     [player addObserver:self forKeyPath:@"rate" options:0 context:nil];
     [currentItem addObserver:self forKeyPath:@"status" options:0 context:nil];
     
@@ -401,8 +398,6 @@
 - (BOOL)isPlaying {
     return [player rate] > 0.0f;
 }
-
-#pragma mark - AV Player Notifications and Observers
 
 - (void)playerDidFinishPlaying:(NSNotification *)notification {
     [self stop];

@@ -36,7 +36,7 @@
 @property (strong, nonatomic) NSURL *videoURL;
 @property (weak, nonatomic) id<VideoAdViewDelegate> delegate;
 
-- (void)prepareAndPlayAutomatically:(BOOL)autoPlay;
+- (void)prepareAndPlay:(BOOL)autoPlay;
 
 - (void)play;
 - (void)pause;
