@@ -22,7 +22,8 @@
 - (void)playerDidLeaveFullscreen;
 - (void)playerFailedToPlayToEnd;
 - (void)playerStalled;
-
+- (void)playerDidMute;
+- (void)playerDidUnMute;
 @end
 
 

@@ -23,6 +23,7 @@
 
 @property (strong, nonatomic) UIView *controllersView;
 
+@property (strong, nonatomic) UIButton *volumeButton;
 @property (strong, nonatomic) UIButton *fullscreenButton;
 @property (strong, nonatomic) MPVolumeView *volumeView;
 @property (strong, nonatomic) UILabel *playheadTimeLabel;
@@ -47,7 +48,7 @@
 
 @synthesize player, playerLayer, currentItem;
 @synthesize controllersView;
-@synthesize fullscreenButton, volumeView, playheadTimeLabel, spacerView;
+@synthesize fullscreenButton, volumeButton, volumeView, playheadTimeLabel;
 @synthesize activityIndicator, progressTimer, controllersTimer, fullscreen, defaultFrame;
 
 @synthesize videoURL, delegate;
@@ -101,10 +102,16 @@
     [self addConstraints:tmpVerticalConstraints];
     
     // UIController
+    volumeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [volumeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [volumeButton setImage:[UIImage imageNamed:@"xadsdk_ad_mute"] forState:UIControlStateNormal];
+    [volumeButton setImage:[UIImage imageNamed:@"xadsdk_ad_unmute"] forState:UIControlStateSelected];
+    
+    
     volumeView = [MPVolumeView new];
     [volumeView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [volumeView setShowsRouteButton:YES];
-    [volumeView setShowsVolumeSlider:NO];
+    [volumeView setShowsVolumeSlider:YES];
     [volumeView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
     
     fullscreenButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -119,15 +126,18 @@
     [playheadTimeLabel setTextAlignment:NSTextAlignmentCenter];
     [playheadTimeLabel setTextColor:[UIColor whiteColor]];
     
+    /*
     spacerView = [UIView new];
     spacerView.backgroundColor = [UIColor whiteColor];
     spacerView.alpha = 0.40f;
     [spacerView setTranslatesAutoresizingMaskIntoConstraints:NO];
+    */
     
+    [controllersView addSubview:volumeButton];
     [controllersView addSubview:fullscreenButton];
     [controllersView addSubview:volumeView];
     [controllersView addSubview:playheadTimeLabel];
-    [controllersView addSubview:spacerView];
+    //[controllersView addSubview:spacerView];
     /*
     horizontalConstraints = [NSLayoutConstraint
                              constraintsWithVisualFormat:@"H:|[P(40)][S(10)][C]-5-[I]-5-[R][F(40)][V(40)]|"
@@ -142,26 +152,16 @@
                                      @"F" : fullscreenButton}];
     */
     tmpHorizontalConstraints = [NSLayoutConstraint
-                             constraintsWithVisualFormat:@"H:|[S(10)][R][F(40)][V(40)]|"
+                             constraintsWithVisualFormat:@"H:|[VB(40)][R][F(40)][V(40)]|"
                              options:0
                              metrics:nil
-                             views:@{@"S" : spacerView,
-                                     @"R" : playheadTimeLabel,
+                             views:@{@"R" : playheadTimeLabel,
                                      @"V" : volumeView,
-                                     @"F" : fullscreenButton}];
+                                     @"F" : fullscreenButton,
+                                     @"VB" : volumeButton}];
     
     [controllersView addConstraints:tmpHorizontalConstraints];
     [volumeView hideByWidth:YES];
-    [spacerView hideByWidth:YES];
-    
-    /*
-    tmpHorizontalConstraints = [NSLayoutConstraint
-                             constraintsWithVisualFormat:@"H:|-5-[L]-5-|"
-                             options:0
-                             metrics:nil
-                             views:@{@"L" : liveLabel}];
-    [controllersView addConstraints:tmpHorizontalConstraints];
-    */
     
     for (UIView *view in [controllersView subviews]) {
         tmpVerticalConstraints = [NSLayoutConstraint
@@ -171,7 +171,6 @@
                                views:@{@"V" : view}];
         [controllersView addConstraints:tmpVerticalConstraints];
     }
-    
     
     // loadingUI
     activityIndicator = [UIActivityIndicatorView new];
@@ -187,14 +186,6 @@
     [fullscreenButton addTarget:self action:@selector(toggleFullscreen:) forControlEvents:UIControlEventTouchUpInside];
     [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showControllers)]];
     [self showControllers];
-}
-
-
-
-
-#pragma mark - UI Customization
-- (void)setTintColor:(UIColor *)tintColor {
-    [super setTintColor:tintColor];
 }
 
 #pragma mark - Actions
