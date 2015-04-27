@@ -40,10 +40,7 @@
 
 @end
 
-
 /**
- *
- *
  *
  */
 @implementation VideoAdView
@@ -71,7 +68,6 @@
     return self;
 }
 
-
 - (void)createUI {
     NSArray *tmpHorizontalConstraints;
     NSArray *tmpVerticalConstraints;
@@ -80,11 +76,11 @@
     [self setBackgroundColor:[UIColor blackColor]];
     
     // event listeners
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerDidFinishPlaying:)
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerItemDidPlayToEndTime:)
                                                  name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerFailedToPlayToEnd:)
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerItemFailedToPlayToEndTime:)
                                                  name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerStalled:)
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerItemPlaybackStalled:)
                                                  name:AVPlayerItemPlaybackStalledNotification object:nil];
     
     // Container View
@@ -96,7 +92,6 @@
                                                                     options:0
                                                                     metrics:nil
                                                                       views:@{@"CV" : controllersView}];
-    
     tmpVerticalConstraints = [NSLayoutConstraint constraintsWithVisualFormat:@"V:[CV(40)]|"
                                                                   options:0
                                                                   metrics:nil
@@ -107,8 +102,8 @@
     // UIController
     volumeButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [volumeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [volumeButton setImage:[UIImage imageNamed:@"xadsdk_ad_mute"] forState:UIControlStateNormal];
-    [volumeButton setImage:[UIImage imageNamed:@"xadsdk_ad_unmute"] forState:UIControlStateSelected];
+    [volumeButton setImage:[UIImage imageNamed:@"xadsdk_ad_unmute"] forState:UIControlStateNormal];
+    [volumeButton setImage:[UIImage imageNamed:@"xadsdk_ad_mute"] forState:UIControlStateSelected];
     
     
     volumeView = [MPVolumeView new];
@@ -316,7 +311,7 @@
 
 #pragma mark - Public Methods
 
-- (void)prepareAndPlay:(BOOL)autoPlay {
+- (void)prepareAndPlay:(BOOL)autoPlay WithSilentMode:(BOOL)silent {
     if (player) {
         [self stop];
     }
@@ -335,6 +330,11 @@
     }];
     
     [player setAllowsExternalPlayback:YES];
+    
+    if( silent) {
+        [player setVolume:0.00f];
+    }
+    
     playerLayer = [AVPlayerLayer playerLayerWithPlayer:player];
     [self.layer addSublayer:playerLayer];
     
@@ -358,22 +358,6 @@
     {
         [activityIndicator startAnimating];
     }
-}
-
-- (void)dispose
-{
-    // remove observer
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemPlaybackStalledNotification object:nil];
-    //
-    [player setAllowsExternalPlayback:NO];
-    [self stop];
-    [player removeObserver:self forKeyPath:@"rate"];
-    [self setPlayer:nil];
-    [self setPlayerLayer:nil];
-    //
-    [self removeFromSuperview];
 }
 
 - (void)play {
@@ -404,7 +388,8 @@
     return [player rate] > 0.0f;
 }
 
-- (void)playerDidFinishPlaying:(NSNotification *)notification {
+#pragma mark - AVPlayerItem Event Observer
+- (void)playerItemDidPlayToEndTime:(NSNotification *)notification {
     [self stop];
     
     
@@ -427,14 +412,13 @@
     [player play];
 }
 
-- (void)playerFailedToPlayToEnd:(NSNotification *)notification {
+- (void)playerItemFailedToPlayToEndTime:(NSNotification *)notification {
     [self stop];
     if ([delegate respondsToSelector:@selector(playerFailedToPlayToEnd)]) {
         [delegate playerFailedToPlayToEnd];
     }
 }
-
-- (void)playerStalled:(NSNotification *)notification {
+- (void)playerItemPlaybackStalled:(NSNotification *)notification {
     if ([delegate respondsToSelector:@selector(playerStalled)]) {
         [delegate playerStalled];
     }
@@ -455,6 +439,22 @@
             [activityIndicator stopAnimating];
         }
     }
+}
+
+- (void)dispose
+{
+    // remove observer
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemPlaybackStalledNotification object:nil];
+    //
+    [player setAllowsExternalPlayback:NO];
+    [self stop];
+    [player removeObserver:self forKeyPath:@"rate"];
+    [self setPlayer:nil];
+    [self setPlayerLayer:nil];
+    //
+    [self removeFromSuperview];
 }
 
 @end
