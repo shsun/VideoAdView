@@ -49,7 +49,7 @@
     
     NSURL *URL = [NSURL URLWithString:@"http://211.151.146.65:8080/wlantest/shanghai_sun/wanghan.mp4"];
     [mVideoAdView setVideoURL:URL];
-    [mVideoAdView prepareAndPlay:YES WithSilentMode:YES];
+    [mVideoAdView prepareWithAutoPlay:YES silentMode:YES];    
     
     [addPlayerButton setEnabled:NO];
     [removePlayerButton setEnabled:YES];

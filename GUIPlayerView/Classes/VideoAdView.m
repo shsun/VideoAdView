@@ -285,16 +285,11 @@
     return result;
 }
 
-- (void)refreshProgressUI
-{
+- (void)refreshProgressUI {
     CGFloat duration = CMTimeGetSeconds(currentItem.asset.duration);
-    
-    if (duration == 0 || isnan(duration))
-    {
+    if (duration == 0 || isnan(duration)) {
         [playheadTimeLabel setText:nil];
-    }
-    else
-    {
+    } else {
         CGFloat playheadTime = CMTimeGetSeconds(player.currentTime);
         [playheadTimeLabel setText:[NSString stringWithFormat:@"%f / %f", round(playheadTime), round(duration)]];
     }
@@ -311,7 +306,7 @@
 
 #pragma mark - Public Methods
 
-- (void)prepareAndPlay:(BOOL)autoPlay WithSilentMode:(BOOL)silent {
+- (void)prepareWithAutoPlay:(BOOL)autoPlay silentMode:(BOOL)silent {
     if (player) {
         [self stop];
     }
@@ -354,8 +349,7 @@
     [player seekToTime:kCMTimeZero];
     [player setRate:0.0f];
     
-    if (autoPlay)
-    {
+    if (autoPlay) {
         [activityIndicator startAnimating];
     }
 }
