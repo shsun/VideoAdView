@@ -23,6 +23,8 @@
 
 @property (strong, nonatomic) UIView *controllersView;
 
+@property (assign, nonatomic) int times;
+
 @property (strong, nonatomic) UIButton *volumeButton;
 @property (strong, nonatomic) UIButton *fullscreenButton;
 @property (strong, nonatomic) MPVolumeView *volumeView;
@@ -49,7 +51,7 @@
 @synthesize player, playerLayer, currentItem;
 @synthesize controllersView;
 @synthesize fullscreenButton, volumeButton, volumeView, playheadTimeLabel;
-@synthesize activityIndicator, progressTimer, controllersTimer, fullscreen, defaultFrame;
+@synthesize activityIndicator, progressTimer, controllersTimer, fullscreen, defaultFrame, times;
 
 @synthesize videoURL, delegate;
 
@@ -58,18 +60,19 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     defaultFrame = frame;
+    times = 0;
     [self createUI];
     return self;
 }
-- (instancetype)initWithCoder:(NSCoder *)aDecoder {
-    self = [super initWithCoder:aDecoder];
+- (instancetype)initWithCoder:(NSCoder *)coder {
+    self = [super initWithCoder:coder];
+    times = 0;
     [self createUI];
     return self;
 }
 
 
-- (void)createUI
-{
+- (void)createUI {
     NSArray *tmpHorizontalConstraints;
     NSArray *tmpVerticalConstraints;
     
@@ -126,13 +129,6 @@
     [playheadTimeLabel setTextAlignment:NSTextAlignmentCenter];
     [playheadTimeLabel setTextColor:[UIColor whiteColor]];
     
-    /*
-    spacerView = [UIView new];
-    spacerView.backgroundColor = [UIColor whiteColor];
-    spacerView.alpha = 0.40f;
-    [spacerView setTranslatesAutoresizingMaskIntoConstraints:NO];
-    */
-    
     [controllersView addSubview:volumeButton];
     [controllersView addSubview:fullscreenButton];
     [controllersView addSubview:volumeView];
@@ -183,12 +179,30 @@
     [activityIndicator stopAnimating];
     [self addSubview:activityIndicator];
     
+    [volumeButton addTarget:self action:@selector(onVolumeButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [fullscreenButton addTarget:self action:@selector(toggleFullscreen:) forControlEvents:UIControlEventTouchUpInside];
     [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showControllers)]];
     [self showControllers];
 }
 
-#pragma mark - Actions
+#pragma mark - UI Action
+- (void)onVolumeButtonClicked:(UIButton *)button {
+    if(player.volume <= 0.00f) {
+        [player setVolume:0.80f];
+        [button setSelected:YES];
+        
+        if ([delegate respondsToSelector:@selector(playerDidMute)]) {
+            [delegate playerDidMute];
+        }
+    } else {
+        [player setVolume:0.00f];
+        [button setSelected:NO];
+        
+        if ([delegate respondsToSelector:@selector(playerDidUnMute)]) {
+            [delegate playerDidUnMute];
+        }
+    }
+}
 - (void)toggleFullscreen:(UIButton *)button {
     if (fullscreen) {
         if ([delegate respondsToSelector:@selector(playerWillLeaveFullscreen)]) {
@@ -393,15 +407,22 @@
 - (void)playerDidFinishPlaying:(NSNotification *)notification {
     [self stop];
     
+    
+    times += 1;
+    
+    /*
+    // backward to non-fullscreen state when the video complete
     if (fullscreen) {
         [self toggleFullscreen:fullscreenButton];
     }
+    */
     
     /*
-     if ([delegate respondsToSelector:@selector(playerDidEnd)]) {
-     [delegate playerDidEnd];
-     }
-     */
+    //
+    if ([delegate respondsToSelector:@selector(playerDidEnd)]) {
+        [delegate playerDidEnd];
+    }
+    */
     
     [player play];
 }
